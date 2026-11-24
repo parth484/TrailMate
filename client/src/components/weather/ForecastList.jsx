@@ -3,7 +3,8 @@ import { Calendar } from 'lucide-react';
 import { getWeatherDescription } from '../../services/weatherService';
 
 const ForecastList = ({ forecast = [] }) => {
-  if (!forecast || forecast.length === 0) return null;
+  const safeForecast = Array.isArray(forecast) ? forecast : [];
+  if (safeForecast.length === 0) return null;
 
   return (
     <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-800">
@@ -13,7 +14,7 @@ const ForecastList = ({ forecast = [] }) => {
       </h4>
 
       <div className="grid grid-cols-5 gap-2">
-        {forecast.map((item, index) => {
+        {safeForecast.map((item, index) => {
           const desc = getWeatherDescription(item.weatherCode);
           return (
             <div

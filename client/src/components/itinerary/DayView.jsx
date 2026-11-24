@@ -30,7 +30,7 @@ const DayView = ({ day, onAddActivity, onEditActivity, onDeleteActivity }) => {
         </button>
       </div>
 
-      {day.activities && day.activities.length > 0 ? (
+      {Array.isArray(day?.activities) && day.activities.length > 0 ? (
         <div className="space-y-3">
           {day.activities.map((activity) => (
             <ActivityCard

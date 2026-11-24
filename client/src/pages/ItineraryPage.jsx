@@ -5,6 +5,7 @@ import * as itineraryService from '../services/itineraryService';
 import DayView from '../components/itinerary/DayView';
 import ActivityFormModal from '../components/itinerary/ActivityFormModal';
 import { CalendarRange, Compass, Plus } from 'lucide-react';
+import { toSafeArray } from '../utils/safeData';
 
 const ItineraryPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -39,9 +40,10 @@ const ItineraryPage = () => {
     setLoading(true);
     try {
       const data = await itineraryService.getItinerariesByTrip(tripId);
-      setItineraries(data);
+      setItineraries(toSafeArray(data));
     } catch (err) {
       console.error('Error fetching itinerary:', err);
+      setItineraries([]);
     } finally {
       setLoading(false);
     }

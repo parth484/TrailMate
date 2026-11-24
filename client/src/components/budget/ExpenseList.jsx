@@ -2,17 +2,19 @@ import React from 'react';
 import { Trash2, Calendar, Tag, FileText } from 'lucide-react';
 
 const ExpenseList = ({ expenses = [], onDelete }) => {
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+
   return (
     <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4">
       <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Recent Transactions</h3>
 
-      {expenses.length === 0 ? (
+      {safeExpenses.length === 0 ? (
         <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">
           No expenses logged yet. Add your first expense above.
         </p>
       ) : (
         <div className="space-y-2.5">
-          {expenses.map((exp) => (
+          {safeExpenses.map((exp) => (
             <div
               key={exp._id}
               className="flex items-center justify-between p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 hover:border-sky-500/50 transition-all duration-200"

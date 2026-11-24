@@ -101,7 +101,7 @@ const PlaceCard = ({ place, onSelectPlace, onBookHotel }) => {
           </p>
 
           {/* Amenities Chips */}
-          {place.amenities && place.amenities.length > 0 && (
+          {Array.isArray(place?.amenities) && place.amenities.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-1">
               {place.amenities.slice(0, 3).map((amenity, idx) => (
                 <span

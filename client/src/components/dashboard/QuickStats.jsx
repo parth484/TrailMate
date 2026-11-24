@@ -3,7 +3,7 @@ import StatCard from '../common/StatCard';
 import { Compass, DollarSign, Calendar, CheckCircle } from 'lucide-react';
 
 const QuickStats = ({ stats }) => {
-  if (!stats) return null;
+  if (!stats || typeof stats !== 'object' || Array.isArray(stats)) return null;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

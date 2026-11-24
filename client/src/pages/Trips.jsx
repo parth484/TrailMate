@@ -41,9 +41,10 @@ const Trips = () => {
     }
   };
 
-  const filteredTrips = trips.filter((t) => {
+  const safeTrips = Array.isArray(trips) ? trips : [];
+  const filteredTrips = safeTrips.filter((t) => {
     const matchesSearch =
-      t.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (t.destination || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (t.country && t.country.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesStatus = statusFilter === 'All' || t.status === statusFilter;

@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { Calendar, Users, MapPin, ArrowRight } from 'lucide-react';
 
 const UpcomingTripsList = ({ trips = [] }) => {
-  const upcoming = trips.filter(t => t.status === 'Planning' || t.status === 'Ongoing');
+  const safeTrips = Array.isArray(trips) ? trips : [];
+  const upcoming = safeTrips.filter(t => t.status === 'Planning' || t.status === 'Ongoing');
 
   return (
     <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-800">

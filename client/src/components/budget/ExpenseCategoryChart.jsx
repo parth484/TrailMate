@@ -2,7 +2,8 @@ import React from 'react';
 import { PieChart } from 'lucide-react';
 
 const ExpenseCategoryChart = ({ expenses = [] }) => {
-  const categoryTotals = expenses.reduce((acc, curr) => {
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const categoryTotals = safeExpenses.reduce((acc, curr) => {
     const cat = curr.category || 'Other';
     acc[cat] = (acc[cat] || 0) + Number(curr.amount || 0);
     return acc;

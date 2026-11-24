@@ -7,6 +7,7 @@ import ExpenseCategoryChart from '../components/budget/ExpenseCategoryChart';
 import ExpenseList from '../components/budget/ExpenseList';
 import ExpenseFormModal from '../components/budget/ExpenseFormModal';
 import { Wallet, Plus, DollarSign } from 'lucide-react';
+import { toSafeArray, isPlainObject } from '../utils/safeData';
 
 const BudgetPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,9 +39,19 @@ const BudgetPage = () => {
     setLoading(true);
     try {
       const data = await expenseService.getExpensesByTrip(tripId);
-      setExpenseData(data);
+      if (isPlainObject(data)) {
+        setExpenseData({
+          expenses: toSafeArray(data.expenses),
+          totalSpent: Number(data.totalSpent || 0),
+          budget: Number(data.budget || 0),
+          remaining: Number(data.remaining || 0),
+        });
+      } else {
+        setExpenseData({ expenses: [], totalSpent: 0, budget: 0, remaining: 0 });
+      }
     } catch (err) {
       console.error('Error fetching expenses:', err);
+      setExpenseData({ expenses: [], totalSpent: 0, budget: 0, remaining: 0 });
     } finally {
       setLoading(false);
     }

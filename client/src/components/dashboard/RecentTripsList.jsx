@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Clock, MapPin, DollarSign } from 'lucide-react';
 
 const RecentTripsList = ({ trips = [] }) => {
+  const safeTrips = Array.isArray(trips) ? trips : [];
+
   return (
     <div className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-800">
       <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
@@ -10,13 +12,13 @@ const RecentTripsList = ({ trips = [] }) => {
         Recent Destinations
       </h3>
 
-      {trips.length === 0 ? (
+      {safeTrips.length === 0 ? (
         <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
           No trip history recorded yet.
         </p>
       ) : (
         <div className="space-y-3">
-          {trips.slice(0, 5).map((trip) => (
+          {safeTrips.slice(0, 5).map((trip) => (
             <Link
               key={trip._id}
               to={`/trips/${trip._id}`}

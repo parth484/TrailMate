@@ -13,4 +13,15 @@ const API = axios.create({
   },
 });
 
+// Reject HTML responses (e.g. SPA fallback returning index.html for /api/*)
+API.interceptors.response.use(
+  (response) => {
+    if (typeof response.data === 'string' && response.data.trim().startsWith('<')) {
+      return Promise.reject(new Error('API endpoint returned HTML instead of JSON.'));
+    }
+    return response;
+  },
+  (error) => Promise.reject(error)
+);
+
 export default API;
