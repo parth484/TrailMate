@@ -1,7 +1,17 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const inMemoryUsers = [];
+const inMemoryUsers = [
+  {
+    _id: 'user_demo_traveler',
+    name: 'Demo Traveler',
+    email: 'demo@travelplanner.com',
+    password: bcrypt.hashSync('123456', 10),
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+    bio: 'Exploring the world with Trail Mate',
+    createdAt: new Date(),
+  },
+];
 
 const userSchema = new mongoose.Schema(
   {

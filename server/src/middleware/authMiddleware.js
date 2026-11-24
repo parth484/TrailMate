@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { inMemoryUsers } = require('../models/User');
+const { getDBStatus } = require('../config/db');
 
 const protect = async (req, res, next) => {
   let token;
@@ -10,23 +12,24 @@ const protect = async (req, res, next) => {
   ) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'travel_planner_super_secret_jwt_key_2026_production');
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET || 'travel_planner_super_secret_jwt_key_2026_production'
+      );
 
-      // Attempt to load from MongoDB first
-      try {
+      if (getDBStatus()) {
         const user = await User.findById(decoded.id).select('-password');
         if (user) {
           req.user = user;
           return next();
         }
-      } catch (err) {
-        // Fallback store access
       }
 
       // Check fallback store
-      const { inMemoryUsers } = require('../models/User');
-      const fallbackUser = inMemoryUsers.find(u => u._id === decoded.id || u.id === decoded.id);
-      
+      const fallbackUser = inMemoryUsers.find(
+        (u) => u._id === decoded.id || u.id === decoded.id
+      );
+
       if (fallbackUser) {
         const { password, ...userWithoutPassword } = fallbackUser;
         req.user = userWithoutPassword;
@@ -39,9 +42,7 @@ const protect = async (req, res, next) => {
     }
   }
 
-  if (!token) {
-    return res.status(401).json({ message: 'Not authorized, no token provided' });
-  }
+  return res.status(401).json({ message: 'Not authorized, no token provided' });
 };
 
 module.exports = { protect };

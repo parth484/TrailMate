@@ -20,10 +20,19 @@ const Register = () => {
     setLoading(true);
 
     try {
-      await register({ name, email, password });
+      await register({ name: name.trim(), email: email.trim(), password });
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Try again.');
+      const serverMsg =
+        err.response?.data?.errors?.[0]?.message ||
+        err.response?.data?.message;
+      if (serverMsg) {
+        setError(serverMsg);
+      } else if (!err.response) {
+        setError('Unable to reach the server. Please check your connection or API configuration.');
+      } else {
+        setError(`Registration failed (HTTP ${err.response.status}). Try again.`);
+      }
     } finally {
       setLoading(false);
     }

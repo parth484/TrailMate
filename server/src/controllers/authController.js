@@ -8,7 +8,9 @@ const { getDBStatus } = require('../config/db');
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const password = req.body.password;
 
   if (!name || !email || !password) {
     return res.status(400).json({ message: 'Please provide all fields' });
@@ -16,30 +18,28 @@ const registerUser = async (req, res) => {
 
   try {
     if (getDBStatus()) {
-      const userExists = await User.findOne({ email: email.toLowerCase() });
+      const userExists = await User.findOne({ email });
       if (userExists) {
         return res.status(400).json({ message: 'User with this email already exists' });
       }
 
       const user = await User.create({
         name,
-        email: email.toLowerCase(),
+        email,
         password,
       });
 
-      if (user) {
-        return res.status(201).json({
-          _id: user._id.toString(),
-          name: user.name,
-          email: user.email,
-          avatar: user.avatar,
-          bio: user.bio,
-          token: generateToken(user._id.toString()),
-        });
-      }
+      return res.status(201).json({
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        bio: user.bio,
+        token: generateToken(user._id.toString()),
+      });
     } else {
       // Memory fallback
-      const userExists = inMemoryUsers.find(u => u.email === email.toLowerCase());
+      const userExists = inMemoryUsers.find((u) => u.email === email);
       if (userExists) {
         return res.status(400).json({ message: 'User with this email already exists' });
       }
@@ -50,7 +50,7 @@ const registerUser = async (req, res) => {
       const newUser = {
         _id: 'user_' + Date.now(),
         name,
-        email: email.toLowerCase(),
+        email,
         password: hashedPassword,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
         bio: 'Avid traveler & adventure seeker',
@@ -69,7 +69,14 @@ const registerUser = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+    if (error.name === 'ValidationError') {
+      const firstErr = Object.values(error.errors)[0]?.message || error.message;
+      return res.status(400).json({ message: firstErr });
+    }
+    res.status(500).json({ message: error.message || 'Server error during registration' });
   }
 };
 
@@ -77,7 +84,8 @@ const registerUser = async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const password = req.body.password;
 
   if (!email || !password) {
     return res.status(400).json({ message: 'Please provide email and password' });
@@ -85,7 +93,7 @@ const loginUser = async (req, res) => {
 
   try {
     if (getDBStatus()) {
-      const user = await User.findOne({ email: email.toLowerCase() });
+      const user = await User.findOne({ email });
       if (user && (await user.matchPassword(password))) {
         return res.json({
           _id: user._id.toString(),
@@ -98,7 +106,7 @@ const loginUser = async (req, res) => {
       }
     } else {
       // Memory fallback
-      const user = inMemoryUsers.find(u => u.email === email.toLowerCase());
+      const user = inMemoryUsers.find((u) => u.email === email);
       if (user && (await bcrypt.compare(password, user.password))) {
         return res.json({
           _id: user._id,
@@ -113,7 +121,7 @@ const loginUser = async (req, res) => {
 
     res.status(401).json({ message: 'Invalid email or password' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message || 'Server error during login' });
   }
 };
 

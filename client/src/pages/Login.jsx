@@ -19,10 +19,19 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login({ email, password });
+      await login({ email: email.trim(), password });
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to sign in. Please check credentials.');
+      const serverMsg =
+        err.response?.data?.errors?.[0]?.message ||
+        err.response?.data?.message;
+      if (serverMsg) {
+        setError(serverMsg);
+      } else if (!err.response) {
+        setError('Unable to reach the server. Please check your connection or API configuration.');
+      } else {
+        setError(`Sign in failed (HTTP ${err.response.status}). Please check credentials.`);
+      }
     } finally {
       setLoading(false);
     }
