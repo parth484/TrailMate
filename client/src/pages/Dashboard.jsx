@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { getLocalProfile } from '../utils/profileStorage';
 import { useTrips } from '../context/TripContext';
 import QuickStats from '../components/dashboard/QuickStats';
 import UpcomingTripsList from '../components/dashboard/UpcomingTripsList';
@@ -217,7 +217,7 @@ const DESTINATIONS = [
 
 /* ─── Main Dashboard Component ────────────────────────────────── */
 const Dashboard = () => {
-  const { user } = useAuth();
+  const [profile] = useState(() => getLocalProfile());
   const { trips, stats, fetchTrips, fetchStats, createTrip } = useTrips();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -254,7 +254,7 @@ const Dashboard = () => {
             </h1>
 
             <p className="text-sm md:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-              Welcome back, <strong className="text-emerald-500">{user?.name || 'Explorer'}</strong>! Spin the 3D globe to preview expedition pins across Pune, Rishikesh, Ladakh & Goa, or switch to 3D mountain wireframe mode.
+              Welcome back, <strong className="text-emerald-500">{profile?.name || 'Explorer'}</strong>! Spin the 3D globe to preview expedition pins across Pune, Rishikesh, Ladakh & Goa, or switch to 3D mountain wireframe mode.
             </p>
           </div>
 

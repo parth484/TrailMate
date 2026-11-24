@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { TripProvider } from './context/TripContext';
 
-import ProtectedRoute from './components/common/ProtectedRoute';
 import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
 
-import Login from './pages/Login';
-import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Trips from './pages/Trips';
 import TripDetail from './pages/TripDetail';
@@ -28,6 +24,7 @@ const AppLayout = () => {
         <Sidebar isOpen={sidebarOpen} closeSidebar={() => setSidebarOpen(false)} />
         <main className="flex-1 overflow-y-auto p-4 lg:p-8 max-w-7xl mx-auto w-full">
           <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/trips" element={<Trips />} />
             <Route path="/trips/:id" element={<TripDetail />} />
@@ -46,22 +43,11 @@ const AppLayout = () => {
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <TripProvider>
-          <Router>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-
-              {/* Protected App Routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/*" element={<AppLayout />} />
-              </Route>
-            </Routes>
-          </Router>
-        </TripProvider>
-      </AuthProvider>
+      <TripProvider>
+        <Router>
+          <AppLayout />
+        </Router>
+      </TripProvider>
     </ThemeProvider>
   );
 }

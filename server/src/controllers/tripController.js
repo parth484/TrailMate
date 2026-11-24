@@ -52,19 +52,16 @@ const geocodeDestination = async (destinationName) => {
   return null;
 };
 
-// @desc    Get user trips
+// @desc    Get trips
 // @route   GET /api/trips
-// @access  Private
+// @access  Public
 const getTrips = async (req, res) => {
   try {
-    const userId = req.user._id || req.user.id;
-
     if (getDBStatus()) {
-      const trips = await Trip.find({ user: userId }).sort({ startDate: 1 });
+      const trips = await Trip.find({}).sort({ startDate: 1 });
       return res.json(trips);
     } else {
-      const trips = inMemoryTrips.filter(t => t.user === userId || t.user.toString() === userId.toString());
-      return res.json(trips);
+      return res.json(inMemoryTrips);
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -73,18 +70,14 @@ const getTrips = async (req, res) => {
 
 // @desc    Get single trip by ID
 // @route   GET /api/trips/:id
-// @access  Private
+// @access  Public
 const getTripById = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user._id || req.user.id;
 
     if (getDBStatus()) {
       const trip = await Trip.findById(id);
       if (!trip) return res.status(404).json({ message: 'Trip not found' });
-      if (trip.user.toString() !== userId.toString()) {
-        return res.status(403).json({ message: 'Not authorized' });
-      }
       return res.json(trip);
     } else {
       const trip = inMemoryTrips.find(t => t._id === id);
@@ -98,17 +91,15 @@ const getTripById = async (req, res) => {
 
 // @desc    Create new trip
 // @route   POST /api/trips
-// @access  Private
+// @access  Public
 const createTrip = async (req, res) => {
   try {
     const { destination, country, startDate, endDate, budget, currency, travelers, status, coverImage, lat, lng } = req.body;
-    const userId = req.user._id || req.user.id;
 
     const lowerDest = (destination || '').toLowerCase().trim();
     const cityInfo = CITY_COORDS[lowerDest] || (await geocodeDestination(destination)) || {};
 
     const tripData = {
-      user: userId,
       destination,
       country: country || cityInfo.country || 'Global',
       startDate: new Date(startDate),
@@ -141,11 +132,10 @@ const createTrip = async (req, res) => {
 
 // @desc    Update trip
 // @route   PUT /api/trips/:id
-// @access  Private
+// @access  Public
 const updateTrip = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user._id || req.user.id;
 
     let updateData = { ...req.body };
     if (updateData.destination) {
@@ -161,9 +151,6 @@ const updateTrip = async (req, res) => {
     if (getDBStatus()) {
       const trip = await Trip.findById(id);
       if (!trip) return res.status(404).json({ message: 'Trip not found' });
-      if (trip.user.toString() !== userId.toString()) {
-        return res.status(403).json({ message: 'Not authorized' });
-      }
 
       Object.assign(trip, updateData);
       const updatedTrip = await trip.save();
@@ -186,18 +173,14 @@ const updateTrip = async (req, res) => {
 
 // @desc    Delete trip
 // @route   DELETE /api/trips/:id
-// @access  Private
+// @access  Public
 const deleteTrip = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user._id || req.user.id;
 
     if (getDBStatus()) {
       const trip = await Trip.findById(id);
       if (!trip) return res.status(404).json({ message: 'Trip not found' });
-      if (trip.user.toString() !== userId.toString()) {
-        return res.status(403).json({ message: 'Not authorized' });
-      }
 
       await Trip.findByIdAndDelete(id);
       return res.json({ message: 'Trip deleted successfully', id });
@@ -214,19 +197,18 @@ const deleteTrip = async (req, res) => {
 
 // @desc    Get dashboard statistics
 // @route   GET /api/trips/stats
-// @access  Private
+// @access  Public
 const getDashboardStats = async (req, res) => {
   try {
-    const userId = req.user._id || req.user.id;
     let trips = [];
     let expenses = [];
 
     if (getDBStatus()) {
-      trips = await Trip.find({ user: userId });
+      trips = await Trip.find({});
       const tripIds = trips.map(t => t._id);
       expenses = await Expense.find({ trip: { $in: tripIds } });
     } else {
-      trips = inMemoryTrips.filter(t => t.user === userId || t.user.toString() === userId.toString());
+      trips = inMemoryTrips;
       const tripIds = trips.map(t => t._id);
       expenses = inMemoryExpenses.filter(e => tripIds.includes(e.trip));
     }

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { updateProfile, changePassword } from '../services/authService';
-import { User, Lock, Camera, CheckCircle, AlertCircle, Save } from 'lucide-react';
+import { User, CheckCircle, AlertCircle, Save } from 'lucide-react';
+import { getLocalProfile, saveLocalProfile } from '../utils/profileStorage';
 
 const AVATAR_OPTIONS = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
@@ -12,40 +11,21 @@ const AVATAR_OPTIONS = [
 ];
 
 const ProfilePage = () => {
-  const { user, updateUserState } = useAuth();
-
-  const [name, setName] = useState(user?.name || '');
-  const [bio, setBio] = useState(user?.bio || '');
-  const [avatar, setAvatar] = useState(user?.avatar || AVATAR_OPTIONS[0]);
-
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-
+  const [profile, setProfile] = useState(() => getLocalProfile());
+  const [name, setName] = useState(profile.name);
+  const [bio, setBio] = useState(profile.bio);
+  const [avatar, setAvatar] = useState(profile.avatar);
   const [profileMsg, setProfileMsg] = useState({ type: '', text: '' });
-  const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' });
 
-  const handleUpdateProfile = async (e) => {
+  const handleUpdateProfile = (e) => {
     e.preventDefault();
     setProfileMsg({ type: '', text: '' });
     try {
-      const updated = await updateProfile({ name, bio, avatar });
-      updateUserState(updated);
-      setProfileMsg({ type: 'success', text: 'Profile updated successfully!' });
-    } catch (err) {
-      setProfileMsg({ type: 'error', text: err.response?.data?.message || 'Failed to update profile.' });
-    }
-  };
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    setPasswordMsg({ type: '', text: '' });
-    try {
-      await changePassword({ currentPassword, newPassword });
-      setPasswordMsg({ type: 'success', text: 'Password changed successfully!' });
-      setCurrentPassword('');
-      setNewPassword('');
-    } catch (err) {
-      setPasswordMsg({ type: 'error', text: err.response?.data?.message || 'Password change failed.' });
+      const updated = saveLocalProfile({ name: name.trim() || 'Explorer', bio, avatar });
+      setProfile(updated);
+      setProfileMsg({ type: 'success', text: 'Profile preferences saved!' });
+    } catch {
+      setProfileMsg({ type: 'error', text: 'Failed to save profile preferences.' });
     }
   };
 
@@ -54,10 +34,10 @@ const ProfilePage = () => {
       <div>
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
           <User className="w-6 h-6 text-sky-500" />
-          Account & Profile Settings
+          Traveler Profile Preferences
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Manage your personal information, avatar, and security preferences
+          Customize your traveler display name, bio, and avatar stored locally in your browser
         </p>
       </div>
 
@@ -72,8 +52,8 @@ const ProfilePage = () => {
             />
           </div>
           <div>
-            <h3 className="font-extrabold text-lg text-slate-900 dark:text-slate-100">{user?.name}</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
+            <h3 className="font-extrabold text-lg text-slate-900 dark:text-slate-100">{profile.name}</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{profile.bio}</p>
           </div>
 
           <div className="pt-3 border-t border-slate-100 dark:border-slate-800 text-left">
@@ -115,7 +95,7 @@ const ProfilePage = () => {
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
-                Full Name
+                Display Name
               </label>
               <input
                 type="text"
@@ -145,62 +125,6 @@ const ProfilePage = () => {
                 className="px-5 py-2 rounded-xl text-xs font-semibold bg-sky-500 hover:bg-sky-600 text-white shadow-md shadow-sky-500/20 flex items-center gap-1.5"
               >
                 <Save className="w-3.5 h-3.5" /> Save Profile
-              </button>
-            </div>
-          </form>
-
-          {/* Change Password Form */}
-          <form onSubmit={handleChangePassword} className="glass-panel p-6 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-indigo-500" /> Security & Password
-            </h3>
-
-            {passwordMsg.text && (
-              <div className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
-                passwordMsg.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-              }`}>
-                {passwordMsg.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                <span>{passwordMsg.text}</span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  required
-                  placeholder="••••••••"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  placeholder="At least 6 characters"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                type="submit"
-                className="px-5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 flex items-center gap-1.5"
-              >
-                <Lock className="w-3.5 h-3.5" /> Update Password
               </button>
             </div>
           </form>

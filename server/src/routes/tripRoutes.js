@@ -2,10 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const { getTrips, getTripById, createTrip, updateTrip, deleteTrip, getDashboardStats } = require('../controllers/tripController');
-const { protect } = require('../middleware/authMiddleware');
 const validate = require('../middleware/validateMiddleware');
-
-router.use(protect);
 
 router.get('/stats', getDashboardStats);
 router.get('/', getTrips);
